@@ -196,7 +196,6 @@ typedef struct UIState {
 
   // device state
   bool awake;
-  int awake_timeout;
   float light_sensor;
 
   bool started;

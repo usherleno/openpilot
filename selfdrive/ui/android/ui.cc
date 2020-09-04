@@ -38,24 +38,36 @@ static void enable_event_processing(bool yes) {
   }
 }
 
-static void set_awake(UIState *s, bool awake) {
-  if (awake) {
-    // 30 second timeout
-    s->awake_timeout = 30*UI_FREQ;
-  }
-  if (s->awake != awake) {
-    s->awake = awake;
+// TODO: implement double tap to wake and actually turn display off
+static void handle_display_state(UIState *s, bool user_input) {
 
-    // TODO: replace command_awake and command_sleep with direct calls to android
-    if (awake) {
-      LOGW("awake normal");
-      framebuffer_set_power(s->fb, HWC_POWER_MODE_NORMAL);
-      enable_event_processing(true);
+  static int display_mode = HWC_POWER_MODE_OFF;
+  static int display_timeout = 0;
+
+  // determine desired state
+  int desired_mode = display_mode;
+  if (user_input || s->ignition || s->started) {
+    desired_mode = HWC_POWER_MODE_NORMAL;
+    awake_timeout = 30*UI_FREQ;
+  } else {
+    if (awake_timeout > 0) {
+      awake_timeout--;
     } else {
-      LOGW("awake off");
+      desired_mode = HWC_POWER_MODE_OFF;
+    }
+  }
+
+  // handle state transition
+  if (display_mode != desired_mode) {
+    LOGW("setting display mode %d", desired_mode);
+
+    display_mode = desired_mode;
+    s->awake = display_mode == HWC_POWER_MODE_NORMAL;
+    framebuffer_set_power(s->fb, display_mode);
+    enable_event_processing(s->awake);
+
+    if (!s->awake) {
       ui_set_brightness(s, 0);
-      framebuffer_set_power(s->fb, HWC_POWER_MODE_OFF);
-      enable_event_processing(false);
     }
   }
 }
@@ -117,7 +129,7 @@ int main(int argc, char* argv[]) {
   UIState uistate = {};
   UIState *s = &uistate;
   ui_init(s);
-  set_awake(s, true);
+  handle_display_state(s, true);
   enable_event_processing(true);
 
   PubMaster *pm = new PubMaster({"offroadLayout"});
@@ -156,23 +168,12 @@ int main(int argc, char* argv[]) {
     int touch_x = -1, touch_y = -1;
     int touched = touch_poll(&touch, &touch_x, &touch_y, 0);
     if (touched == 1) {
-      set_awake(s, true);
       handle_sidebar_touch(s, touch_x, touch_y);
       handle_vision_touch(s, touch_x, touch_y);
     }
 
-    // manage wakefulness
-    if (s->started || s->ignition) {
-      set_awake(s, true);
-    }
-
-    if (s->awake_timeout > 0) {
-      s->awake_timeout--;
-    } else {
-      set_awake(s, false);
-    }
-
     // Don't waste resources on drawing in case screen is off
+    handle_display_state(s, touched == 1);
     if (!s->awake) {
       continue;
     }
@@ -196,7 +197,7 @@ int main(int argc, char* argv[]) {
     framebuffer_swap(s->fb);
   }
 
-  set_awake(s, true);
+  handle_display_state(s, true);
   delete s->sm;
   delete pm;
   return 0;
