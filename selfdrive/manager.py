@@ -219,6 +219,7 @@ persistent_processes = [
 
 if not PC:
   persistent_processes += [
+    'sensord',
     'logcatd',
     'tombstoned',
   ]
@@ -258,7 +259,6 @@ if WEBCAM:
 
 if not PC:
   car_started_processes += [
-    'sensord',
     'dmonitoringmodeld',
   ]
 
