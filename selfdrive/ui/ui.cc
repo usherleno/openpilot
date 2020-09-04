@@ -218,8 +218,8 @@ void update_sockets(UIState *s) {
     scene.frontview = false;
   }
   if (sm.updated("sensorEvents")) {
-    for (auto s : sm["sensorEvents"].getSensorEvents()) {
-      if (s.which() == cereal::SensorEventData::LIGHT) {
+    for (auto sensor : sm["sensorEvents"].getSensorEvents()) {
+      if (sensor.which() == cereal::SensorEventData::LIGHT) {
         s->light_sensor = sensor.getLight();
       }
     }
