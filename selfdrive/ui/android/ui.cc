@@ -3,6 +3,8 @@
 #include <math.h>
 #include <sys/resource.h>
 
+#include <algorithm>
+
 #include "common/util.h"
 #include "common/utilpp.h"
 #include "common/params.h"
@@ -48,11 +50,10 @@ static void handle_display_state(UIState *s, bool user_input) {
   int desired_mode = display_mode;
   if (user_input || s->ignition || s->started) {
     desired_mode = HWC_POWER_MODE_NORMAL;
-    awake_timeout = 30*UI_FREQ;
+    display_timeout = 30*UI_FREQ;
   } else {
-    if (awake_timeout > 0) {
-      awake_timeout--;
-    } else {
+    display_timeout = std::min(display_timeout-1, 0);
+    if (display_timeout == 0) {
       desired_mode = HWC_POWER_MODE_OFF;
     }
   }

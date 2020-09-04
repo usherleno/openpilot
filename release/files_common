@@ -347,6 +347,9 @@ selfdrive/ui/text/Makefile
 selfdrive/ui/text/text
 selfdrive/ui/text/text.c
 
+selfdrive/ui/android/*.cc
+selfdrive/ui/android/*.hpp
+
 selfdrive/ui/qt/*.cc
 selfdrive/ui/qt/*.hpp
 
