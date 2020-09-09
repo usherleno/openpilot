@@ -42,6 +42,7 @@ class TestStartup(unittest.TestCase):
     # TODO: this should be done without any real sockets
     controls_sock = messaging.sub_sock("controlsState")
     pm = messaging.PubMaster(['can', 'health'])
+    Params().clear_all()
     Params().put("CommunityFeaturesToggle", b"1" if toggle_enabled else b"0")
 
     time.sleep(2) # wait for controlsd to be ready
