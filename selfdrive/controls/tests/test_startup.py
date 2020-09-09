@@ -43,6 +43,8 @@ class TestStartup(unittest.TestCase):
     controls_sock = messaging.sub_sock("controlsState")
     pm = messaging.PubMaster(['can', 'health'])
     Params().clear_all()
+    Params().put("Passive", b"0")
+    Params().put("OpenpilotEnabledToggle", b"1")
     Params().put("CommunityFeaturesToggle", b"1" if toggle_enabled else b"0")
 
     time.sleep(2) # wait for controlsd to be ready
